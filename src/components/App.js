@@ -13,16 +13,17 @@ class App extends Component {
     this.state = {
       posts: []
     };
+    this.updateInterval;
     this.postsApi = "https://practiceapi.devmountain.com/api/posts";
     this.updatePost = this.updatePost.bind(this);
     this.deletePost = this.deletePost.bind(this);
     this.createPost = this.createPost.bind(this);
+    this.getAllPosts = this.getAllPosts.bind(this);
   }
   getAllPosts() {
     axios
       .get(this.postsApi)
       .then(response => {
-        console.log("GetAllPosts response data", response.data);
         this.setState({ posts: response.data });
       })
       .catch(error => {
@@ -31,9 +32,13 @@ class App extends Component {
   }
   componentDidMount() {
     this.getAllPosts();
-  }
 
-  updatePost() {}
+    this.updateInterval = setInterval(this.getAllPosts, 10000);
+  }
+  componentWillUnmount() {
+    clearInterval(this.updateInterval);
+  }
+  updatePost(text) {}
 
   deletePost() {}
 
@@ -48,8 +53,15 @@ class App extends Component {
 
         <section className="App__content">
           <Compose />
-          {this.state.posts.map((post, index) => {
-            return <Post key={index} />;
+          {posts.map((post, index) => {
+            return (
+              <Post
+                {...post}
+                key={index}
+                postsApi={this.postsApi}
+                updatePost={this.props.updatePost}
+              />
+            );
           })}
         </section>
       </div>

@@ -47,7 +47,6 @@ class App extends Component {
     clearInterval(this.updateInterval);
   }
   updatePost(postId, text) {
-    console.log("updatePost:", postId, text);
     axios
       .put(this.postsApi + `?id=${postId}`, { text })
       .then(response => {
@@ -57,11 +56,19 @@ class App extends Component {
   }
 
   deletePost(postID) {
-    console.log("delete post requested with id", postID);
-    axios.delete(this.postsApi + `?id=${postID}`);
+    axios
+      .delete(this.postsApi + `?id=${postID}`)
+      .then(response => {
+        this.setState({ posts: response.data });
+      })
+      .catch(console.error);
   }
 
-  createPost() {}
+  createPost(text) {
+    axios.post(this.postsApi, { text }).then(response => {
+      this.setState({ posts: response.data });
+    });
+  }
 
   render() {
     const { posts } = this.state;
@@ -71,7 +78,7 @@ class App extends Component {
         <Header />
 
         <section className="App__content">
-          <Compose />
+          <Compose createPostFn={this.createPost} />
           {posts.map((post, index) => {
             let text = (post.text || "").toString();
             return (

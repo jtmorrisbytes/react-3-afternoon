@@ -11,18 +11,26 @@ class App extends Component {
     super();
 
     this.state = {
-      posts: []
+      posts: [],
+      postsFilter: ""
     };
     this.updateInterval;
     this.postsApi = "https://practiceapi.devmountain.com/api/posts";
     this.updatePost = this.updatePost.bind(this);
     this.deletePost = this.deletePost.bind(this);
     this.createPost = this.createPost.bind(this);
-    this.getAllPosts = this.getAllPosts.bind(this);
+    this.getPosts = this.getPosts.bind(this);
+    this.filterPosts = this.filterPosts.bind(this);
+    this.handleFilterChange = this.handleFilterChange.bind(this);
   }
-  getAllPosts() {
+  getPosts() {
+    let requestUrl = this.postsApi;
+    if (this.state.postsFilter.length > 0) {
+      requestUrl += `/filter?text=${this.state.postsFilter}`;
+    }
+
     axios
-      .get(this.postsApi)
+      .get(requestUrl)
       .then(response => {
         if (
           (response.data || {}).__proto__.contructor === [].__proto__.contructor
@@ -38,10 +46,14 @@ class App extends Component {
         console.error(error);
       });
   }
+  handleFilterChange(event) {
+    console.log("somebody typed in the search box", event);
+    this.setState({ postsFilter: event.target.value });
+  }
   componentDidMount() {
-    this.getAllPosts();
+    this.getPosts();
 
-    this.updateInterval = setInterval(this.getAllPosts, 10000);
+    this.updateInterval = setInterval(this.getPosts, 10000);
   }
   componentWillUnmount() {
     clearInterval(this.updateInterval);
@@ -69,13 +81,24 @@ class App extends Component {
       this.setState({ posts: response.data });
     });
   }
-
+  filterPosts(text = this.state.postsFilter) {
+    axios
+      .get(this.postsApi + `/filter?text=${text || ""}`)
+      .then(response => {
+        this.setState({ posts: response.data });
+      })
+      .catch(console.error);
+  }
   render() {
     const { posts } = this.state;
 
     return (
       <div className="App__parent">
-        <Header />
+        <Header
+          filterPostsFn={this.filterPosts}
+          postsFilter={this.state.postsFilter}
+          handleFilterChangeFn={this.handleFilterChange}
+        />
 
         <section className="App__content">
           <Compose createPostFn={this.createPost} />

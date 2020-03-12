@@ -24,7 +24,15 @@ class App extends Component {
     axios
       .get(this.postsApi)
       .then(response => {
-        this.setState({ posts: response.data });
+        if (
+          (response.data || {}).__proto__.contructor === [].__proto__.contructor
+        ) {
+          this.setState({ posts: response.data });
+        } else {
+          console.error(
+            "App.getAllPosts: response.data was not an array... not calling setState now"
+          );
+        }
       })
       .catch(error => {
         console.error(error);
@@ -38,9 +46,20 @@ class App extends Component {
   componentWillUnmount() {
     clearInterval(this.updateInterval);
   }
-  updatePost(text) {}
+  updatePost(postId, text) {
+    console.log("updatePost:", postId, text);
+    axios
+      .put(this.postsApi + `?id=${postId}`, { text })
+      .then(response => {
+        this.setState({ posts: response.data });
+      })
+      .catch(console.error);
+  }
 
-  deletePost() {}
+  deletePost(postID) {
+    console.log("delete post requested with id", postID);
+    axios.delete(this.postsApi + `?id=${postID}`);
+  }
 
   createPost() {}
 
@@ -54,12 +73,13 @@ class App extends Component {
         <section className="App__content">
           <Compose />
           {posts.map((post, index) => {
+            let text = (post.text || "").toString();
             return (
               <Post
-                {...post}
-                key={index}
-                postsApi={this.postsApi}
-                updatePost={this.props.updatePost}
+                id={post.id}
+                text={text}
+                deletePostFn={this.deletePost}
+                updatePostFn={this.updatePost}
               />
             );
           })}

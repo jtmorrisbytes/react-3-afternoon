@@ -12,8 +12,8 @@ import Edit from "./Edit/Edit";
 //////////////////////////////////////////////////////// THIS COMPONENT IS BEING RENDERED IN THE *APP* COMPONENT
 
 export default class Post extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       editing: false,
@@ -24,13 +24,16 @@ export default class Post extends Component {
     this.showEdit = this.showEdit.bind(this);
     this.toggleMasterMenu = this.toggleMasterMenu.bind(this);
     this.hideMasterMenu = this.hideMasterMenu.bind(this);
+    this.deletePost = this.deletePost.bind(this);
   }
 
   // This puts the post into EDIT mode when the EDIT button is clicked from the drop-down
   showEdit() {
     this.setState({ editing: true, showMasterMenu: false });
   }
-
+  deletePost() {
+    this.props.deletePostFn(this.props.id);
+  }
   // This puts the post back into normal viewing mode when the CANCEL button is clicked
   // This method is passed down to the <Edit /> component via props
   hideEdit() {
@@ -54,7 +57,6 @@ export default class Post extends Component {
     // const editing = this.state.editing
     // const showMasterMenu = this.state.showMasterMenu
     const { editing, showMasterMenu } = this.state;
-
     return (
       // Main body of post
       <section className="Post__parent" onClick={this.hideMasterMenu}>
@@ -68,7 +70,7 @@ export default class Post extends Component {
             style={{ display: showMasterMenu ? "flex" : "none" }}
           >
             <span onClick={this.showEdit}>Edit</span>
-            <span>Delete</span>
+            <span onClick={this.deletePost}>Delete</span>
           </div>
         </div>
 
@@ -96,10 +98,11 @@ export default class Post extends Component {
           {// This has been pulled off of this.state via destructuring
           editing ? (
             <Edit
-              text=""
+              text={this.props.text}
               hideEdit={this.hideEdit}
               postsApi={this.props.postsApi}
-              updatePost={this.props.updatePost}
+              id={this.props.id}
+              updatePostFn={this.props.updatePostFn}
             />
           ) : (
             <span className="Post__text">{this.props.text}</span>
